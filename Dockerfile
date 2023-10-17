@@ -10,7 +10,7 @@ ARG p="--use-checkinstall --build-only --skip-aom --skip-jpeg-xl"
 RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y less wget
 
 RUN wget 'https://dist.1-2.dev/imei.sh' -qO "$t"
-RUN --mount=type=cache,target=/var/cache/apt bash "$t" $p || true && ls -l /usr/local/src/ || true
+RUN --mount=type=cache,target=/var/cache/apt bash "$t" --build-cflags="-O0" --build-cxxflags="-O0" $p || true && ls -l /usr/local/src/ || true
 
 FROM ${BASE_IMAGE}
 
