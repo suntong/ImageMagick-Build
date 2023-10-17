@@ -6,12 +6,15 @@ FROM ${BASE_IMAGE} AS builder
 
 ARG t=/tmp/imei.sh # $(mktemp)
 ARG p="--use-checkinstall --build-only --skip-aom --skip-jpeg-xl"
+ARG d="--dev"
 
 RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y less wget
 
 RUN wget 'https://dist.1-2.dev/imei.sh' -qO "$t"
-RUN --mount=type=cache,target=/var/cache/apt bash "$t" --build-cflags="-O0" --build-cxxflags="-O0" $p || true && ls -l /usr/local/src/ || true
+RUN grep '^# Version *: ' "$t"
+RUN --mount=type=cache,target=/var/cache/apt bash "$t" $d $p || true && ls -l /usr/local/src/ || true
 
+# checkinstall-only-beg
 FROM ${BASE_IMAGE}
 
 ARG CLOUDSMITH_API_KEY
@@ -20,8 +23,11 @@ COPY --from=builder /usr/local/src/ /tmp
 #RUN ls -l /tmp /tmp/src/ || true
 RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y less libxml2
 RUN --mount=type=cache,target=/var/cache/apt apt install -y --no-install-recommends /tmp/imei-*.deb
+# checkinstall-only-end
 
-RUN identify --version && convert -version && magick -version
+# for AWS Lambda, but doesn't hurt checkinstall
+ENV PATH="$PATH:/opt/bin"
+RUN echo $PATH && identify --version && convert -version && magick -version
 #RUN identify /usr/*/go*/src/image/testdata/video-001.jpeg
 RUN identify /usr/share/pixmaps/debian-logo.png
 RUN convert /usr/share/pixmaps/debian-logo.png /tmp/debian-logo.jpg && \
