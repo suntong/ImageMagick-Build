@@ -12,6 +12,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y less w
 
 RUN wget 'https://dist.1-2.dev/imei.sh' -qO "$t"
 RUN grep '^# Version *: ' "$t"
+RUN sed -i '/--disable-static/d' "$t"
 RUN --mount=type=cache,target=/var/cache/apt bash "$t" $d $p || true && ls -l /usr/local/src/ || true
 
 # checkinstall-only-beg
